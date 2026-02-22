@@ -1,60 +1,36 @@
 const Frame = document.querySelector(".Projects-Frame");
 const HAF = document.querySelectorAll(".hideAfterFullscreen");
 const IFrame = document.querySelector(".Projects-IFrame");
-const gameContainer = document.querySelector(".Projects-Container");
-const searchBar = document.getElementById("GameSearchBar");
 
 async function addGames() {
   try {
-    // Paralel veri Ã§ekme
-    const [cdnResponse, listResponse] = await Promise.all([
-      fetch("./Hosting/CDN.json?hah").then((res) => res.json()),
-      fetch("./Hosting/CDN.json?hah").then(async (res) => {
-        const cdn = await res.json();
-        return fetch(cdn + "list.json?cfa3ss").then((res) => res.json());
-      }),
-    ]);
+    const cdn = await (await fetch("./Hosting/CDN.json")).json();
+    const games = await (await fetch(cdn + "list.json")).json();
+    games.sort((a, b) => a.game.localeCompare(b.game));
 
-    const cdn = cdnResponse;
-    const games = listResponse;
-
-    // OyunlarÄ± ada gÃ¶re sÄ±ralama (eksikse boÅŸ string varsayÄ±lÄ±r)
-    games.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-
-    // Tek seferde DOM'a eklemek iÃ§in DocumentFragment kullanÄ±mÄ±
-    const fragment = document.createDocumentFragment();
-
-    games.forEach((game) => {
+    for (const game of games) {
       const project = document.createElement("div");
       project.className = "Projects-Project";
       project.innerHTML = `
-        <img src="${game.gameroot || ''}" loading="lazy" onerror="this.style.display='none';"/>
-        <h2>${game.name || "Unknown"}</h2>
-        <h4 style="display:none;">${game.name || "Unknown"}</h4>
-      `;
+                <img src="${cdn}Icons/${game.game.replace(
+        /[.\s]/g,
+        ""
+      )}.png" loading="lazy" onerror="this.src='./Assests/Imgs/NoIcon.png'"/>
+                <h1>${game.game}</h1>`;
+      document.querySelector(".Projects-Container").appendChild(project);
 
       project.addEventListener("click", () => {
-        console.log("acilis");
-        show_preroll();
-
         HAF.forEach((element) => element.classList.add("hidden"));
         Frame.classList.remove("hidden");
-        IFrame.src = `${cdn}${game.linksrc || ""}`;
+        IFrame.src = `${cdn}${game.gameroot}`;
       });
-
-      fragment.appendChild(project);
-    });
-
-    gameContainer.appendChild(fragment); // Tek seferde DOM'a ekleme
-
+    }
   } catch (error) {
-    console.error("OyunlarÄ± yÃ¼klerken hata oluÅŸtu:", error);
+    console.error(error);
   }
 }
 
 Frame.querySelector(".Projects-FrameBar").addEventListener("click", (event) => {
-  console.log("kapanis");
-
   if (event.target.id === "close") {
     HAF.forEach((element) => element.classList.remove("hidden"));
     Frame.classList.add("hidden");
@@ -65,20 +41,24 @@ Frame.querySelector(".Projects-FrameBar").addEventListener("click", (event) => {
       IFrame.webkitRequestFullscreen ||
       IFrame.msRequestFullscreen;
     requestFullscreen.call(IFrame);
-  } else if (event.target.id === "link") {
-    window.open(IFrame.src);
-  }
+  } else if (event.target.id === "link") window.open(IFrame.src);
 });
 
-searchBar.addEventListener("input", () => {
-  const searchQuery = searchBar.value.trim().toLowerCase();
-  const games = gameContainer.querySelectorAll(".Projects-Project");
+document.getElementById("GameSearchBar").addEventListener("input", () => {
+  const searchedup = document
+    .getElementById("GameSearchBar")
+    .value.trim()
+    .toLowerCase();
+  const gameholders = document.querySelector(".Projects-Container");
+  const gmae = gameholders.querySelectorAll(".Projects-Project");
 
-  games.forEach((game) => {
-    const gameName = game.querySelector("h4").innerText.trim().toLowerCase();
-    game.classList.toggle("hidden", !gameName.includes(searchQuery));
+  gmae.forEach((game) => {
+    var gamenames = game.querySelector("h1").innerText.trim().toLowerCase();
+    if (gamenames.includes(searchedup)) game.classList.remove("hidden");
+    else game.classList.add("hidden");
   });
 });
 
 addGames();
-Açıklama
+
+// dont mind this
