@@ -19,7 +19,9 @@ async function addGames() {
                 <h1>${game.game}</h1>`;
       document.querySelector(".Projects-Container").appendChild(project);
 
-      project.addEventListener("click", () => {
+        project.addEventListener("click", () => {
+        console.log("acilis");
+        show_preroll();
         HAF.forEach((element) => element.classList.add("hidden"));
         Frame.classList.remove("hidden");
         IFrame.src = `${cdn}${game.gameroot}`;
